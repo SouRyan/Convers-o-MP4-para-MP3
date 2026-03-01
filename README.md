@@ -12,11 +12,3 @@ Use o conversor diretamente no seu computador:
 - **Executável .exe:** execute `build.bat` para gerar o `Conversor-MP4-MP3.exe` na pasta `dist\`. Depois, use o `.exe` em qualquer lugar.
 
 > **Requisito:** FFmpeg deve estar instalado e no PATH do sistema para a conversão funcionar.
-
-### Versão em rede
-
-Para usar pela internet, acesse:
-
-**https://convers-o-mp4-para-mp3-production.up.railway.app**
-
-Basta enviar seu arquivo MP4 e fazer o download do MP3 convertido.
