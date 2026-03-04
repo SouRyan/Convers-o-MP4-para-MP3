@@ -45,7 +45,8 @@ MATERIAS = [
     "VIDA DE PROSPERIDADE",
     "UNÇÃO",
 ]
-AULAS = ["Aula 1", "Aula 2"]
+AULAS = [f"Aula {i}" for i in range(1, 8)]  # Aula 1 até Aula 7
+PARTES = ["Parte 1", "Parte 2"]
 
 
 def _sanitizar_nome(texto: str) -> str:
@@ -56,10 +57,10 @@ def _sanitizar_nome(texto: str) -> str:
     return texto or "arquivo"
 
 
-def _nome_download_mp3(materia: str, aula: str) -> str:
-    """Nome final: materia_aula_dataAtual.mp3"""
+def _nome_download_mp3(materia: str, aula: str, parte: str) -> str:
+    """Nome final: materia_aula_parte_dataAtual.mp3"""
     data_atual = date.today().isoformat()
-    return f"{_sanitizar_nome(materia)}_{_sanitizar_nome(aula)}_{data_atual}.mp3"
+    return f"{_sanitizar_nome(materia)}_{_sanitizar_nome(aula)}_{_sanitizar_nome(parte)}_{data_atual}.mp3"
 
 
 def converter_mp4_para_mp3(arquivo_mp4: str, arquivo_mp3: str):
@@ -117,8 +118,9 @@ def convert():
 
     materia = request.form.get("materia", "").strip()
     aula = request.form.get("aula", "").strip()
-    if materia and aula:
-        nome_download = _nome_download_mp3(materia, aula)
+    parte = request.form.get("parte", "").strip()
+    if materia and aula and parte:
+        nome_download = _nome_download_mp3(materia, aula, parte)
     else:
         nome_download = f"{Path(arquivo.filename).stem}.mp3"
 

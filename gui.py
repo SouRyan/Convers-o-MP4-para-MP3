@@ -36,7 +36,9 @@ MATERIAS = [
     "UNCAO",
 ]
 
-AULAS = ["Aula 1", "Aula 2"]
+AULAS = [f"Aula {i}" for i in range(1, 8)]  # Aula 1 até Aula 7
+
+PARTES = ["Parte 1", "Parte 2"]
 
 
 def _sanitizar_nome(texto: str) -> str:
@@ -76,7 +78,7 @@ class ConverterApp:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Conversor MP4 → MP3")
-        self.root.geometry("520x340")
+        self.root.geometry("520x380")
         self.root.resizable(False, False)
 
         # Variáveis
@@ -84,6 +86,7 @@ class ConverterApp:
         self.arquivo_mp3 = tk.StringVar()
         self.materia = tk.StringVar(value=MATERIAS[0] if MATERIAS else "")
         self.aula = tk.StringVar(value=AULAS[0] if AULAS else "")
+        self.parte = tk.StringVar(value=PARTES[0] if PARTES else "")
 
         self._criar_interface()
 
@@ -134,9 +137,20 @@ class ConverterApp:
         )
         combo_aula.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
 
-        # Atualizar preview do nome MP3 quando mudar matéria ou aula
+        # Parte
+        frame_parte = ttk.Frame(main_frame)
+        frame_parte.pack(fill=tk.X, pady=5)
+        ttk.Label(frame_parte, text="Parte:", width=12).pack(side=tk.LEFT, padx=(0, 5))
+        combo_parte = ttk.Combobox(
+            frame_parte, textvariable=self.parte, values=PARTES,
+            width=42, state="readonly"
+        )
+        combo_parte.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+
+        # Atualizar preview do nome MP3 quando mudar matéria, aula ou parte
         self.materia.trace_add("write", self._atualizar_preview_mp3)
         self.aula.trace_add("write", self._atualizar_preview_mp3)
+        self.parte.trace_add("write", self._atualizar_preview_mp3)
 
         # Botão converter
         self.btn_converter = ttk.Button(main_frame, text="Converter para MP3", command=self._converter)
@@ -151,18 +165,19 @@ class ConverterApp:
         self.status.pack(pady=5)
 
     def _atualizar_preview_mp3(self, *_):
-        """Atualiza o campo 'Salvar como' com o nome materia_aula_data."""
+        """Atualiza o campo 'Salvar como' com o nome materia_aula_parte_data."""
         mp4 = self.arquivo_mp4.get().strip()
         if mp4 and os.path.isfile(mp4):
             pasta = os.path.dirname(mp4)
             self.arquivo_mp3.set(os.path.join(pasta, self._nome_mp3_automatico()))
 
     def _nome_mp3_automatico(self) -> str:
-        """Gera o nome do MP3: materia_aula_dataAtual.mp3"""
+        """Gera o nome do MP3: materia_aula_parte_dataAtual.mp3"""
         data_atual = datetime.now().strftime("%Y-%m-%d")
         parte_materia = _sanitizar_nome(self.materia.get())
         parte_aula = _sanitizar_nome(self.aula.get())
-        return f"{parte_materia}_{parte_aula}_{data_atual}.mp3"
+        parte_parte = _sanitizar_nome(self.parte.get())
+        return f"{parte_materia}_{parte_aula}_{parte_parte}_{data_atual}.mp3"
 
     def _selecionar_mp4(self):
         arquivo = filedialog.askopenfilename(

@@ -224,6 +224,18 @@
                 <select id="aula" name="aula" required>
                     <option value="Aula 1">Aula 1</option>
                     <option value="Aula 2">Aula 2</option>
+                    <option value="Aula 3">Aula 3</option>
+                    <option value="Aula 4">Aula 4</option>
+                    <option value="Aula 5">Aula 5</option>
+                    <option value="Aula 6">Aula 6</option>
+                    <option value="Aula 7">Aula 7</option>
+                </select>
+            </div>
+            <div class="field-row">
+                <label for="parte">Parte</label>
+                <select id="parte" name="parte" required>
+                    <option value="Parte 1">Parte 1</option>
+                    <option value="Parte 2">Parte 2</option>
                 </select>
             </div>
 
@@ -306,6 +318,7 @@
             formData.append('file', fileInput.files[0]);
             formData.append('materia', document.getElementById('materia').value);
             formData.append('aula', document.getElementById('aula').value);
+            formData.append('parte', document.getElementById('parte').value);
 
             try {
                 const res = await fetch('/api/convert', {
