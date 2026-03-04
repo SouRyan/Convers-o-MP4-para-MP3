@@ -73,6 +73,29 @@
             margin-top: 8px;
             font-weight: 500;
         }
+        .field-row {
+            margin-top: 16px;
+        }
+        .field-row label {
+            display: block;
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin-bottom: 6px;
+        }
+        .field-row select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.2);
+            color: #e8e8e8;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+        .field-row select:focus {
+            outline: none;
+            border-color: #00d9ff;
+        }
         .btn {
             width: 100%;
             padding: 14px 24px;
@@ -167,6 +190,43 @@
                 <p class="file-name" id="fileName"></p>
             </div>
 
+            <div class="field-row">
+                <label for="materia">Matéria</label>
+                <select id="materia" name="materia" required>
+                    <option value="ALIANÇA DE SANGUE">ALIANÇA DE SANGUE</option>
+                    <option value="AUTORIDADE DO CRENTE">AUTORIDADE DO CRENTE</option>
+                    <option value="AS MANIFESTAÇÕES DO ESPÍRITO">AS MANIFESTAÇÕES DO ESPÍRITO</option>
+                    <option value="CARÁTER DE DEUS">CARÁTER DE DEUS</option>
+                    <option value="COMO SER GUIADO PELO ESPÍRITO">COMO SER GUIADO PELO ESPÍRITO</option>
+                    <option value="CRISTO, AQUELE QUE CURA">CRISTO, AQUELE QUE CURA</option>
+                    <option value="DOUTRINAS BÁSICAS DA BÍBLIA">DOUTRINAS BÁSICAS DA BÍBLIA</option>
+                    <option value="ESCATOLOGIA">ESCATOLOGIA</option>
+                    <option value="EVANGELISMO">EVANGELISMO</option>
+                    <option value="FAMÍLIA CRISTÃ">FAMÍLIA CRISTÃ</option>
+                    <option value="FRUTO DO ESPÍRITO">FRUTO DO ESPÍRITO</option>
+                    <option value="FUNDAMENTOS DA FÉ">FUNDAMENTOS DA FÉ</option>
+                    <option value="GÁLATAS">GÁLATAS</option>
+                    <option value="HISTÓRIA DA IGREJA">HISTÓRIA DA IGREJA</option>
+                    <option value="JUSTIÇA DE DEUS">JUSTIÇA DE DEUS</option>
+                    <option value="MINISTÉRIO PRÁTICO">MINISTÉRIO PRÁTICO</option>
+                    <option value="MINISTRANDO A PALAVRA">MINISTRANDO A PALAVRA</option>
+                    <option value="O LIVRO DE ATOS">O LIVRO DE ATOS</option>
+                    <option value="ORAÇÃO QUE PREVALECE">ORAÇÃO QUE PREVALECE</option>
+                    <option value="REALIDADES DA NOVA CRIAÇÃO">REALIDADES DA NOVA CRIAÇÃO</option>
+                    <option value="SUBMISSÃO E AUTORIDADE">SUBMISSÃO E AUTORIDADE</option>
+                    <option value="VIDA DE LOUVOR">VIDA DE LOUVOR</option>
+                    <option value="VIDA DE PROSPERIDADE">VIDA DE PROSPERIDADE</option>
+                    <option value="UNÇÃO">UNÇÃO</option>
+                </select>
+            </div>
+            <div class="field-row">
+                <label for="aula">Aula</label>
+                <select id="aula" name="aula" required>
+                    <option value="Aula 1">Aula 1</option>
+                    <option value="Aula 2">Aula 2</option>
+                </select>
+            </div>
+
             <button type="submit" class="btn btn-primary" id="btnConvert" disabled>
                 Converter para MP3
             </button>
@@ -191,7 +251,6 @@
         const btnConvert = document.getElementById('btnConvert');
         const status = document.getElementById('status');
         const progressBar = document.getElementById('progressBar');
-
         uploadZone.addEventListener('click', () => fileInput.click());
 
         uploadZone.addEventListener('dragover', (e) => {
@@ -245,6 +304,8 @@
 
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
+            formData.append('materia', document.getElementById('materia').value);
+            formData.append('aula', document.getElementById('aula').value);
 
             try {
                 const res = await fetch('/api/convert', {
@@ -261,7 +322,10 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = fileInput.files[0].name.replace(/\.mp4$/i, '.mp3');
+                // Nome do arquivo vem no header Content-Disposition (materia_aula_data.mp3)
+                const disp = res.headers.get('Content-Disposition');
+                const match = disp && disp.match(/filename\*?=(?:UTF-8'')?"?([^";\n]+)"?/i);
+                a.download = match ? match[1].trim() : fileInput.files[0].name.replace(/\.mp4$/i, '.mp3');
                 a.click();
                 URL.revokeObjectURL(url);
 

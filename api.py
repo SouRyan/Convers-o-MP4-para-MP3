@@ -2,8 +2,10 @@
 API REST para conversão de MP4 para MP3
 """
 import os
+import re
 import subprocess
 import uuid
+from datetime import date
 from pathlib import Path
 
 from flask import Flask, request, jsonify, send_file, render_template
@@ -15,6 +17,49 @@ UPLOAD_FOLDER = Path(__file__).parent / "uploads"
 OUTPUT_FOLDER = Path(__file__).parent / "output"
 UPLOAD_FOLDER.mkdir(exist_ok=True)
 OUTPUT_FOLDER.mkdir(exist_ok=True)
+
+# Listas para o front (mesmas da GUI)
+MATERIAS = [
+    "ALIANÇA DE SANGUE",
+    "AUTORIDADE DO CRENTE",
+    "AS MANIFESTAÇÕES DO ESPÍRITO",
+    "CARÁTER DE DEUS",
+    "COMO SER GUIADO PELO ESPÍRITO",
+    "CRISTO, AQUELE QUE CURA",
+    "DOUTRINAS BÁSICAS DA BÍBLIA",
+    "ESCATOLOGIA",
+    "EVANGELISMO",
+    "FAMÍLIA CRISTÃ",
+    "FRUTO DO ESPÍRITO",
+    "FUNDAMENTOS DA FÉ",
+    "GÁLATAS",
+    "HISTÓRIA DA IGREJA",
+    "JUSTIÇA DE DEUS",
+    "MINISTÉRIO PRÁTICO",
+    "MINISTRANDO A PALAVRA",
+    "O LIVRO DE ATOS",
+    "ORAÇÃO QUE PREVALECE",
+    "REALIDADES DA NOVA CRIAÇÃO",
+    "SUBMISSÃO E AUTORIDADE",
+    "VIDA DE LOUVOR",
+    "VIDA DE PROSPERIDADE",
+    "UNÇÃO",
+]
+AULAS = ["Aula 1", "Aula 2"]
+
+
+def _sanitizar_nome(texto: str) -> str:
+    if not texto or not str(texto).strip():
+        return "arquivo"
+    texto = re.sub(r"[^\w\s\-áéíóúàèìòùãõâêîôûç]", "", str(texto).strip(), flags=re.IGNORECASE)
+    texto = re.sub(r"[\s]+", "_", texto)
+    return texto or "arquivo"
+
+
+def _nome_download_mp3(materia: str, aula: str) -> str:
+    """Nome final: materia_aula_dataAtual.mp3"""
+    data_atual = date.today().isoformat()
+    return f"{_sanitizar_nome(materia)}_{_sanitizar_nome(aula)}_{data_atual}.mp3"
 
 
 def converter_mp4_para_mp3(arquivo_mp4: str, arquivo_mp3: str):
@@ -70,6 +115,13 @@ def convert():
     if not arquivo.filename.lower().endswith(".mp4"):
         return jsonify({"erro": "Apenas arquivos MP4 são aceitos"}), 400
 
+    materia = request.form.get("materia", "").strip()
+    aula = request.form.get("aula", "").strip()
+    if materia and aula:
+        nome_download = _nome_download_mp3(materia, aula)
+    else:
+        nome_download = f"{Path(arquivo.filename).stem}.mp3"
+
     # Salvar upload
     id_unico = str(uuid.uuid4())[:8]
     nome_base = Path(arquivo.filename).stem
@@ -84,7 +136,7 @@ def convert():
             resp = send_file(
                 arquivo_mp3,
                 as_attachment=True,
-                download_name=f"{nome_base}.mp3",
+                download_name=nome_download,
                 mimetype="audio/mpeg"
             )
 
