@@ -13,10 +13,6 @@ Use o conversor diretamente no seu computador:
 
 > **Requisito:** FFmpeg deve estar instalado e no PATH do sistema para a conversão funcionar.
 
-### Versão em rede
 
-Para usar pela internet, acesse:
 
-**https://convers-o-mp4-para-mp3-production.up.railway.app**
 
-Basta enviar seu arquivo MP4 e fazer o download do MP3 convertido.
