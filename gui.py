@@ -87,6 +87,7 @@ class ConverterApp:
         self.materia = tk.StringVar(value=MATERIAS[0] if MATERIAS else "")
         self.aula = tk.StringVar(value=AULAS[0] if AULAS else "")
         self.parte = tk.StringVar(value=PARTES[0] if PARTES else "")
+        self.opcao = tk.StringVar(value="1")  # Opção padrão: com matéria/aula/parte
 
         self._criar_interface()
 
@@ -117,40 +118,48 @@ class ConverterApp:
         entry_mp3.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
         ttk.Button(frame_mp3, text="Procurar...", command=self._selecionar_mp3).pack(side=tk.LEFT)
 
-        # Matéria
-        frame_materia = ttk.Frame(main_frame)
-        frame_materia.pack(fill=tk.X, pady=5)
-        ttk.Label(frame_materia, text="Matéria:", width=12).pack(side=tk.LEFT, padx=(0, 5))
-        combo_materia = ttk.Combobox(
-            frame_materia, textvariable=self.materia, values=MATERIAS,
-            width=42, state="readonly"
-        )
-        combo_materia.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        # Opções de nomeação
+        frame_opcoes = ttk.Frame(main_frame)
+        frame_opcoes.pack(fill=tk.X, pady=10)
+        ttk.Label(frame_opcoes, text="Modo:", width=12).pack(side=tk.LEFT, padx=(0, 5))
+        radio1 = ttk.Radiobutton(frame_opcoes, text="Com Matéria/Aula/Parte", value="1", variable=self.opcao, command=self._atualizar_interface)
+        radio1.pack(side=tk.LEFT, padx=5)
+        radio2 = ttk.Radiobutton(frame_opcoes, text="Nome Livre", value="2", variable=self.opcao, command=self._atualizar_interface)
+        radio2.pack(side=tk.LEFT, padx=5)
 
-        # Aula
-        frame_aula = ttk.Frame(main_frame)
-        frame_aula.pack(fill=tk.X, pady=5)
-        ttk.Label(frame_aula, text="Aula:", width=12).pack(side=tk.LEFT, padx=(0, 5))
-        combo_aula = ttk.Combobox(
-            frame_aula, textvariable=self.aula, values=AULAS,
+        # Frames para matéria/aula/parte (serão mostrados/ocultados)
+        self.frame_materia = ttk.Frame(main_frame)
+        ttk.Label(self.frame_materia, text="Matéria:", width=12).pack(side=tk.LEFT, padx=(0, 5))
+        self.combo_materia = ttk.Combobox(
+            self.frame_materia, textvariable=self.materia, values=MATERIAS,
             width=42, state="readonly"
         )
-        combo_aula.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        self.combo_materia.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
 
-        # Parte
-        frame_parte = ttk.Frame(main_frame)
-        frame_parte.pack(fill=tk.X, pady=5)
-        ttk.Label(frame_parte, text="Parte:", width=12).pack(side=tk.LEFT, padx=(0, 5))
-        combo_parte = ttk.Combobox(
-            frame_parte, textvariable=self.parte, values=PARTES,
+        self.frame_aula = ttk.Frame(main_frame)
+        ttk.Label(self.frame_aula, text="Aula:", width=12).pack(side=tk.LEFT, padx=(0, 5))
+        self.combo_aula = ttk.Combobox(
+            self.frame_aula, textvariable=self.aula, values=AULAS,
             width=42, state="readonly"
         )
-        combo_parte.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        self.combo_aula.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+
+        self.frame_parte = ttk.Frame(main_frame)
+        ttk.Label(self.frame_parte, text="Parte:", width=12).pack(side=tk.LEFT, padx=(0, 5))
+        self.combo_parte = ttk.Combobox(
+            self.frame_parte, textvariable=self.parte, values=PARTES,
+            width=42, state="readonly"
+        )
+        self.combo_parte.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+
+        # Atualizar interface inicial
+        self._atualizar_interface()
 
         # Atualizar preview do nome MP3 quando mudar matéria, aula ou parte
         self.materia.trace_add("write", self._atualizar_preview_mp3)
         self.aula.trace_add("write", self._atualizar_preview_mp3)
         self.parte.trace_add("write", self._atualizar_preview_mp3)
+        self.arquivo_mp4.trace_add("write", self._atualizar_preview_mp3)
 
         # Botão converter
         self.btn_converter = ttk.Button(main_frame, text="Converter para MP3", command=self._converter)
@@ -164,20 +173,48 @@ class ConverterApp:
         self.status = ttk.Label(main_frame, text="Selecione um arquivo MP4 para converter.", foreground="gray")
         self.status.pack(pady=5)
 
+    def _atualizar_interface(self):
+        """Mostra ou oculta campos baseado na opção selecionada."""
+        if self.opcao.get() == "1":
+            # Mostrar campos de matéria/aula/parte
+            self.frame_materia.pack(fill=tk.X, pady=5)
+            self.frame_aula.pack(fill=tk.X, pady=5)
+            self.frame_parte.pack(fill=tk.X, pady=5)
+        else:
+            # Ocultar campos de matéria/aula/parte
+            self.frame_materia.pack_forget()
+            self.frame_aula.pack_forget()
+            self.frame_parte.pack_forget()
+        # Atualizar preview do nome
+        self._atualizar_preview_mp3()
+
     def _atualizar_preview_mp3(self, *_):
-        """Atualiza o campo 'Salvar como' com o nome materia_aula_parte_data."""
+        """Atualiza o campo 'Salvar como' com o nome gerado automaticamente."""
         mp4 = self.arquivo_mp4.get().strip()
         if mp4 and os.path.isfile(mp4):
             pasta = os.path.dirname(mp4)
-            self.arquivo_mp3.set(os.path.join(pasta, self._nome_mp3_automatico()))
+            nome_mp3 = self._nome_mp3_automatico()
+            self.arquivo_mp3.set(os.path.join(pasta, nome_mp3))
 
     def _nome_mp3_automatico(self) -> str:
-        """Gera o nome do MP3: materia_aula_parte_dataAtual.mp3"""
+        """Gera o nome do MP3 baseado na opção selecionada."""
         data_atual = datetime.now().strftime("%Y-%m-%d")
-        parte_materia = _sanitizar_nome(self.materia.get())
-        parte_aula = _sanitizar_nome(self.aula.get())
-        parte_parte = _sanitizar_nome(self.parte.get())
-        return f"{parte_materia}_{parte_aula}_{parte_parte}_{data_atual}.mp3"
+        
+        if self.opcao.get() == "1":
+            # Modo com matéria/aula/parte
+            parte_materia = _sanitizar_nome(self.materia.get())
+            parte_aula = _sanitizar_nome(self.aula.get())
+            parte_parte = _sanitizar_nome(self.parte.get())
+            return f"{parte_materia}_{parte_aula}_{parte_parte}_{data_atual}.mp3"
+        else:
+            # Modo nome livre: usa o nome do arquivo original + data
+            mp4 = self.arquivo_mp4.get().strip()
+            if mp4 and os.path.isfile(mp4):
+                nome_base = os.path.splitext(os.path.basename(mp4))[0]
+                nome_sanitizado = _sanitizar_nome(nome_base)
+                return f"{nome_sanitizado}_{data_atual}.mp3"
+            else:
+                return f"audio_{data_atual}.mp3"
 
     def _selecionar_mp4(self):
         arquivo = filedialog.askopenfilename(
@@ -186,11 +223,10 @@ class ConverterApp:
         )
         if arquivo:
             self.arquivo_mp4.set(arquivo)
-            # Sugerir nome do MP3 (materia_aula_data) na mesma pasta do MP4
-            if not self.arquivo_mp3.get():
-                pasta = os.path.dirname(arquivo)
-                nome_mp3 = self._nome_mp3_automatico()
-                self.arquivo_mp3.set(os.path.join(pasta, nome_mp3))
+            # Sugerir nome do MP3 na mesma pasta do MP4
+            pasta = os.path.dirname(arquivo)
+            nome_mp3 = self._nome_mp3_automatico()
+            self.arquivo_mp3.set(os.path.join(pasta, nome_mp3))
             self.status.config(text="Arquivo selecionado.", foreground="gray")
 
     def _selecionar_mp3(self):
@@ -211,11 +247,12 @@ class ConverterApp:
             messagebox.showwarning("Atenção", "Selecione um arquivo MP4.")
             return
 
-        # Nome final sempre: materia_aula_dataAtual.mp3 (na mesma pasta do MP4)
-        pasta = os.path.dirname(mp4)
-        nome_mp3 = self._nome_mp3_automatico()
-        mp3 = os.path.join(pasta, nome_mp3)
-        self.arquivo_mp3.set(mp3)
+        # Se não foi especificado um nome MP3, usar o nome automático
+        if not mp3:
+            pasta = os.path.dirname(mp4)
+            nome_mp3 = self._nome_mp3_automatico()
+            mp3 = os.path.join(pasta, nome_mp3)
+            self.arquivo_mp3.set(mp3)
 
         self.btn_converter.config(state=tk.DISABLED)
         self.progress.start(10)
