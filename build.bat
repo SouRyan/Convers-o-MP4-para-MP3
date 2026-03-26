@@ -23,7 +23,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo Executando PyInstaller...
-pyinstaller --clean --noconfirm build.spec
+python -m PyInstaller --clean --noconfirm build.spec
 
 if %errorlevel% equ 0 (
     echo.
